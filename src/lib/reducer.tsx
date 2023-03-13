@@ -102,6 +102,7 @@ export default function messageReducer(state: chatState, action: ChatAction) {
         messages: [
           ...state.messages,
           {
+            id: uuidv4(),
             role: "assistant",
             content: state.pending ?? "",
           },

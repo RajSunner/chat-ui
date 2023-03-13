@@ -19,6 +19,7 @@ export default function ChatGPT() {
   const [userInput, setUserInput] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const { messages, pending } = messageState;
+
   const messageListRef = useRef<HTMLLIElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -104,8 +105,11 @@ export default function ChatGPT() {
       <div className="flex flex-col items-center p-8 h-screen ">
         <ul className="overflow-y-scroll rounded-t-lg h-3/4 w-full divide-y divide-slate-200">
           {chatMessages.map((message, index) => {
-            const contentPackage = {role: message.role, content: message.content }
-            const emptyPackage = {role: "", content: "" }
+            const contentPackage = {
+              role: message.role,
+              content: message.content,
+            };
+            const emptyPackage = { role: "", content: "" };
             let icon;
             if (message.role === "user") {
               icon = (
@@ -122,7 +126,6 @@ export default function ChatGPT() {
                 className="p-4 odd:bg-white even:bg-slate-50"
                 ref={messageListRef}
               >
-               
                 <div className="flex">
                   <div className="p-1">{icon}</div>
                   <div className="p-1">
@@ -131,12 +134,20 @@ export default function ChatGPT() {
                     </ReactMarkdown>
                   </div>
                 </div>
-                
-                <Modal type="add" parentItemId={message.id} dispatch={dispatch} contentPackage={emptyPackage} />
-                <Modal type="edit" parentItemId={message.id} dispatch={dispatch} contentPackage={contentPackage} />
-                
+
+                <Modal
+                  type="add"
+                  parentItemId={message.id}
+                  dispatch={dispatch}
+                  contentPackage={emptyPackage}
+                />
+                <Modal
+                  type="edit"
+                  parentItemId={message.id}
+                  dispatch={dispatch}
+                  contentPackage={contentPackage}
+                />
               </li>
-              
             );
           })}
         </ul>

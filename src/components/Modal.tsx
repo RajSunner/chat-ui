@@ -1,15 +1,28 @@
 import React, { useState } from "react";
 import { ChatActionKind } from "@/lib/reducer";
+import "@uiw/react-md-editor/markdown-editor.css";
+import "@uiw/react-markdown-preview/markdown.css";
+import dynamic from "next/dynamic";
+
+const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
+
+const EditerMarkdown = dynamic(
+  () =>
+    import("@uiw/react-md-editor").then((mod) => {
+      return mod.default.Markdown;
+    }),
+  { ssr: false }
+);
 
 function Modal({ type, parentItemId, dispatch, contentPackage }) {
   const [showModal, setShowModal] = useState(false);
   const [role, setRole] = useState(contentPackage.user);
   const [content, setContent] = useState(contentPackage.content);
 
-  const options = ['user', 'assistant', 'system'];
+  const options = ["user", "assistant", "system"];
   const handleRoleChange = (event) => {
     setRole(event.target.value);
-  }
+  };
 
   const handleContentChange = (event) => {
     setContent(event.target.value);
@@ -18,7 +31,7 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     // Dispatch action to add new item
-
+    
     if (type === "add") {
       dispatch({
         type: ChatActionKind.addMessage,
@@ -36,7 +49,7 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
     }
 
     // Reset form values
- 
+
     // Close the modal
     setShowModal(false);
   };
@@ -76,26 +89,36 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
                     >
                       <option>Select</option>
                       {options.map((option, index) => {
-                        return <option key={index} >
-                            {option}
-                        </option>
-                    })}
+                        return <option value={option} key={index}>{option}</option>;
+                      })}
                     </select>
                   </div>
                   <div className="mb-4">
-                    <label
-                      className="block text-gray-700 font-bold mb-2"
-                      htmlFor="content"
-                    >
-                      Content
-                    </label>
-                    <input
-                      type="text"
-                      id="content"
-                      value={content}
-                      onChange={handleContentChange}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    ></input>
+                    {type === "add" ? (
+                      <>
+                        <label
+                          className="block text-gray-700 font-bold mb-2"
+                          htmlFor="content"
+                        >
+                          Content
+                        </label>
+                        <input
+                          type="text"
+                          id="content"
+                          value={content}
+                          onChange={handleContentChange}
+                          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        ></input>
+                      </>
+                    ) : (
+                      <>
+                        <MDEditor value={content} onChange={setContent} />
+                        <EditerMarkdown
+                          source={content}
+                          style={{ whiteSpace: "pre-wrap" }}
+                        />
+                      </>
+                    )}
                   </div>
                   <div className="flex justify-end">
                     <button
