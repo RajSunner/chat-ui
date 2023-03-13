@@ -1,15 +1,15 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import { ChatActionKind } from "@/lib/reducer";
 
-function Modal({ parentItemId, dispatch}) {
-
+function Modal({ type, parentItemId, dispatch, contentPackage }) {
   const [showModal, setShowModal] = useState(false);
-  const [role, setRole] = useState("");
-  const [content, setContent] = useState("");
+  const [role, setRole] = useState(contentPackage.user);
+  const [content, setContent] = useState(contentPackage.content);
 
+  const options = ['user', 'assistant', 'system'];
   const handleRoleChange = (event) => {
     setRole(event.target.value);
-  };
+  }
 
   const handleContentChange = (event) => {
     setContent(event.target.value);
@@ -18,10 +18,25 @@ function Modal({ parentItemId, dispatch}) {
   const handleSubmit = (event) => {
     event.preventDefault();
     // Dispatch action to add new item
-    dispatch({ type: ChatActionKind.addMessage, payload: { role, content, parentItemId } });
+
+    if (type === "add") {
+      dispatch({
+        type: ChatActionKind.addMessage,
+        payload: { role: role, content: content, parentItemId },
+      });
+      setRole("");
+      setContent("");
+    }
+
+    if (type === "edit") {
+      dispatch({
+        type: ChatActionKind.editMessage,
+        payload: { role: role, content: content, parentItemId },
+      });
+    }
+
     // Reset form values
-    setRole("");
-    setContent("");
+ 
     // Close the modal
     setShowModal(false);
   };
@@ -32,7 +47,7 @@ function Modal({ parentItemId, dispatch}) {
         onClick={() => setShowModal(true)}
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
       >
-        Add New Item
+        {type}
       </button>
       {showModal && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
@@ -53,13 +68,19 @@ function Modal({ parentItemId, dispatch}) {
                     >
                       Role
                     </label>
-                    <input
-                      type="text"
+                    <select
                       id="role"
                       value={role}
                       onChange={handleRoleChange}
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    />
+                    >
+                      <option>Select</option>
+                      {options.map((option, index) => {
+                        return <option key={index} >
+                            {option}
+                        </option>
+                    })}
+                    </select>
                   </div>
                   <div className="mb-4">
                     <label
@@ -78,10 +99,17 @@ function Modal({ parentItemId, dispatch}) {
                   </div>
                   <div className="flex justify-end">
                     <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Back
+                    </button>
+                    <button
                       type="submit"
                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     >
-                      Submit
+                      {type}
                     </button>
                   </div>
                 </form>

@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
     return rest;
   });
 
-
+  console.log(`Message state entering api is: ${JSON.stringify(newArr)}`);
 
   const reqMessages: ChatCompletionRequestMessage[] = newArr;
 
