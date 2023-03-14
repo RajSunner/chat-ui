@@ -8,6 +8,8 @@ export enum ChatActionKind {
   setStreamedText = "SET_STREAMED_TEXT",
   addMessage = "ADD_MESSAGE",
   editMessage = "EDIT_MESSAGE",
+  delMessage = "DELETE_MESSAGE",
+  addFirstMessage = "ADD_FIRST_MESSAGE",
 }
 
 // An interface for our actions
@@ -74,6 +76,15 @@ export default function messageReducer(state: chatState, action: ChatAction) {
         messages: 
           arrEd,
       };
+      case ChatActionKind.delMessage:
+        return {
+          ...state,
+          messages: [
+            ...state.messages.filter(
+              (item) => item.id !== payload
+            )
+          ],
+        };
     case ChatActionKind.addNewQuestion:
       return {
         ...state,
@@ -87,6 +98,18 @@ export default function messageReducer(state: chatState, action: ChatAction) {
         ],
         pending: undefined,
       };
+      case ChatActionKind.addFirstMessage:
+        return {
+          ...state,
+          messages: [
+            ...state.messages,
+            {
+              id: uuidv4(),
+              role: payload.role,
+              content: payload.content,
+            },
+          ],
+        };
     case ChatActionKind.setEmptyPending:
       return {
         ...state,

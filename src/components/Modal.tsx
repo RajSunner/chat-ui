@@ -3,20 +3,13 @@ import { ChatActionKind } from "@/lib/reducer";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
+import { PlusIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
-const EditerMarkdown = dynamic(
-  () =>
-    import("@uiw/react-md-editor").then((mod) => {
-      return mod.default.Markdown;
-    }),
-  { ssr: false }
-);
-
 function Modal({ type, parentItemId, dispatch, contentPackage }) {
   const [showModal, setShowModal] = useState(false);
-  const [role, setRole] = useState(contentPackage.user);
+  const [role, setRole] = useState(contentPackage.role);
   const [content, setContent] = useState(contentPackage.content);
 
   const options = ["user", "assistant", "system"];
@@ -31,11 +24,20 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
   const handleSubmit = (event) => {
     event.preventDefault();
     // Dispatch action to add new item
-    
+
     if (type === "add") {
       dispatch({
         type: ChatActionKind.addMessage,
         payload: { role: role, content: content, parentItemId },
+      });
+      setRole("");
+      setContent("");
+    }
+
+    if (type === "addFirst") {
+      dispatch({
+        type: ChatActionKind.addFirstMessage,
+        payload: { role: role, content: content },
       });
       setRole("");
       setContent("");
@@ -48,19 +50,20 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
       });
     }
 
-    // Reset form values
-
-    // Close the modal
     setShowModal(false);
   };
 
   return (
-    <div>
+    <>
       <button
         onClick={() => setShowModal(true)}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        className=" font-bold rounded"
       >
-        {type}
+        {type === "edit" ? (
+          <PencilSquareIcon className="h-5 w-5 " />
+        ) : (
+          <PlusIcon className="h-5 w-5" />
+        )}
       </button>
       {showModal && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
@@ -89,12 +92,16 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
                     >
                       <option>Select</option>
                       {options.map((option, index) => {
-                        return <option value={option} key={index}>{option}</option>;
+                        return (
+                          <option value={option} key={index}>
+                            {option}
+                          </option>
+                        );
                       })}
                     </select>
                   </div>
                   <div className="mb-4">
-                    {type === "add" ? (
+                    {(type === "add" || type === "addFirst") ? (
                       <>
                         <label
                           className="block text-gray-700 font-bold mb-2"
@@ -107,16 +114,13 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
                           id="content"
                           value={content}
                           onChange={handleContentChange}
+                          autoComplete="off"
                           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         ></input>
                       </>
                     ) : (
                       <>
                         <MDEditor value={content} onChange={setContent} />
-                        <EditerMarkdown
-                          source={content}
-                          style={{ whiteSpace: "pre-wrap" }}
-                        />
                       </>
                     )}
                   </div>
@@ -124,13 +128,13 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      className="font-bold py-2 px-4 rounded"
                     >
                       Back
                     </button>
                     <button
                       type="submit"
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      className="font-bold py-2 px-4 rounded"
                     >
                       {type}
                     </button>
@@ -141,7 +145,7 @@ function Modal({ type, parentItemId, dispatch, contentPackage }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 export default Modal;

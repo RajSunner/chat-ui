@@ -3,6 +3,8 @@ import ReactMarkdown from "react-markdown";
 import {
   ChatBubbleBottomCenterTextIcon,
   QuestionMarkCircleIcon,
+  CpuChipIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/20/solid";
 import messageReducer, { ChatActionKind } from "@/lib/reducer";
@@ -103,7 +105,19 @@ export default function ChatGPT() {
   return (
     <>
       <div className="flex flex-col items-center p-8 h-screen ">
-        <ul className="overflow-y-scroll rounded-t-lg h-3/4 w-full divide-y divide-slate-200">
+        <ul className="overflow-y-auto rounded-t-lg h-3/4 w-full divide-y divide-slate-200">
+          {chatMessages.length < 1 ? (
+            <div className="p-6 flex justify-evenly">
+            <Modal
+              type="addFirst"
+              parentItemId={""}
+              dispatch={dispatch}
+              contentPackage={{ role: "system", content: "" }}
+            />
+            </div>
+          ) : (
+            <></>
+          )}
           {chatMessages.map((message, index) => {
             const contentPackage = {
               role: message.role,
@@ -111,11 +125,17 @@ export default function ChatGPT() {
             };
             const emptyPackage = { role: "", content: "" };
             let icon;
+
             if (message.role === "user") {
               icon = (
                 <QuestionMarkCircleIcon className="h-6 w-6 stroke-cyan-500" />
               );
-            } else {
+            }
+            if (message.role === "system") {
+              icon = <CpuChipIcon className="h-6 w-6 stroke-slate-500" />;
+            }
+
+            if (message.role === "assistant") {
               icon = (
                 <ChatBubbleBottomCenterTextIcon className="h-6 w-6 stroke-indigo-500" />
               );
@@ -123,30 +143,44 @@ export default function ChatGPT() {
             return (
               <li
                 key={message.id}
-                className="p-4 odd:bg-white even:bg-slate-50"
+                className="group/item p-4 odd:bg-white even:bg-slate-50"
                 ref={messageListRef}
               >
                 <div className="flex">
                   <div className="p-1">{icon}</div>
-                  <div className="p-1">
+                  <div className="p-1 w-full">
                     <ReactMarkdown className="prose" linkTarget="_blank">
                       {message.content}
                     </ReactMarkdown>
                   </div>
-                </div>
+                  <div className="group/edit invisible group-hover/item:visible space-x-2 h-7 w-24 justify-content flex font-bold rounded">
+                    <button
+                      className=""
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: ChatActionKind.delMessage,
+                          payload: message.id,
+                        })
+                      }
+                    >
+                      <XCircleIcon className="h-5 w-5" />
+                    </button>
+                    <Modal
+                      type="edit"
+                      parentItemId={message.id}
+                      dispatch={dispatch}
+                      contentPackage={contentPackage}
+                    />
+                    <Modal
+                      type="add"
+                      parentItemId={message.id}
+                      dispatch={dispatch}
+                      contentPackage={emptyPackage}
+                    />
 
-                <Modal
-                  type="add"
-                  parentItemId={message.id}
-                  dispatch={dispatch}
-                  contentPackage={emptyPackage}
-                />
-                <Modal
-                  type="edit"
-                  parentItemId={message.id}
-                  dispatch={dispatch}
-                  contentPackage={contentPackage}
-                />
+                  </div>
+                </div>
               </li>
             );
           })}
