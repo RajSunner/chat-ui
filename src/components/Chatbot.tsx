@@ -1,15 +1,10 @@
 import { useState, useMemo, useEffect, useRef, useReducer } from "react";
-import ReactMarkdown from "react-markdown";
-import {
-  ChatBubbleBottomCenterTextIcon,
-  QuestionMarkCircleIcon,
-  CpuChipIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/20/solid";
 import messageReducer, { ChatActionKind } from "@/lib/reducer";
 import { v4 as uuidv4 } from "uuid";
-import Modal from "./Modal";
+import Message from "./Message";
+import Form from "./Form";
 
 export default function ChatGPT() {
   const [messageState, dispatch] = useReducer(messageReducer, {
@@ -21,6 +16,9 @@ export default function ChatGPT() {
   const [userInput, setUserInput] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const { messages, pending } = messageState;
+
+  const [showFormAtIndex, setShowFormAtIndex] = useState(-1);
+  const [showForm, setShowForm] = useState(false);
 
   const messageListRef = useRef<HTMLLIElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -93,6 +91,10 @@ export default function ChatGPT() {
     }
   };
 
+  const handleAddButtonClick = (index) => {
+    setShowFormAtIndex(index);
+  };
+
   const chatMessages = useMemo(() => {
     return [
       ...messages,
@@ -106,84 +108,39 @@ export default function ChatGPT() {
     <>
       <div className="flex flex-col items-center p-8 h-screen ">
         <ul className="overflow-y-auto rounded-t-lg h-3/4 w-full divide-y divide-slate-200">
-          {chatMessages.length < 1 ? (
-            <div className="p-6 flex justify-evenly">
-            <Modal
-              type="addFirst"
-              parentItemId={""}
-              dispatch={dispatch}
-              contentPackage={{ role: "system", content: "" }}
-            />
+          {chatMessages.map((message, index) => (
+            <div key={message.id}>
+              <Message
+                message={message}
+                dispatch={dispatch}
+                add={handleAddButtonClick}
+                index={index}
+              />
+              {showFormAtIndex === index && (
+                <Form
+                  variant="normal"
+                  dispatch={dispatch}
+                  id={message.id}
+                  show={setShowFormAtIndex}
+                />
+              )}
             </div>
-          ) : (
-            <></>
+          ))}
+          {chatMessages.length < 1 && (
+            <div className="flex justify-evenly">
+              <button onClick={() => setShowForm(true)}>
+                <PlusIcon className="h-5 w-5" />
+              </button>
+            </div>
           )}
-          {chatMessages.map((message, index) => {
-            const contentPackage = {
-              role: message.role,
-              content: message.content,
-            };
-            const emptyPackage = { role: "", content: "" };
-            let icon;
-
-            if (message.role === "user") {
-              icon = (
-                <QuestionMarkCircleIcon className="h-6 w-6 stroke-cyan-500" />
-              );
-            }
-            if (message.role === "system") {
-              icon = <CpuChipIcon className="h-6 w-6 stroke-slate-500" />;
-            }
-
-            if (message.role === "assistant") {
-              icon = (
-                <ChatBubbleBottomCenterTextIcon className="h-6 w-6 stroke-indigo-500" />
-              );
-            }
-            return (
-              <li
-                key={message.id}
-                className="group/item p-4 odd:bg-white even:bg-slate-50"
-                ref={messageListRef}
-              >
-                <div className="flex">
-                  <div className="p-1">{icon}</div>
-                  <div className="p-1 w-full">
-                    <ReactMarkdown className="prose" linkTarget="_blank">
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
-                  <div className="group/edit invisible group-hover/item:visible space-x-2 h-7 w-24 justify-content flex font-bold rounded">
-                    <button
-                      className=""
-                      type="button"
-                      onClick={() =>
-                        dispatch({
-                          type: ChatActionKind.delMessage,
-                          payload: message.id,
-                        })
-                      }
-                    >
-                      <XCircleIcon className="h-5 w-5" />
-                    </button>
-                    <Modal
-                      type="edit"
-                      parentItemId={message.id}
-                      dispatch={dispatch}
-                      contentPackage={contentPackage}
-                    />
-                    <Modal
-                      type="add"
-                      parentItemId={message.id}
-                      dispatch={dispatch}
-                      contentPackage={emptyPackage}
-                    />
-
-                  </div>
-                </div>
-              </li>
-            );
-          })}
+          {showForm && (
+            <Form
+              variant="first"
+              dispatch={dispatch}
+              id={""}
+              show={setShowForm}
+            />
+          )}
         </ul>
         <div className="w-full bg-slate-100 rounded-b-lg">
           <form onSubmit={handleSubmit} className="flex w-full">
