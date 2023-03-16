@@ -1,4 +1,12 @@
-import { useState, useMemo, useEffect, useRef, useReducer } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useRef,
+  useReducer,
+  Fragment,
+  SetStateAction,
+} from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { PaperAirplaneIcon } from "@heroicons/react/20/solid";
 import messageReducer, { ChatActionKind } from "@/lib/reducer";
@@ -20,7 +28,7 @@ export default function ChatGPT() {
   const [showFormAtIndex, setShowFormAtIndex] = useState(-1);
   const [showForm, setShowForm] = useState(false);
 
-  const messageListRef = useRef<HTMLLIElement>(null);
+  const messageListRef = useRef<HTMLUListElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -38,7 +46,7 @@ export default function ChatGPT() {
     textAreaRef.current?.focus();
   }, [loading]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: { key?: string; shiftKey?: any; preventDefault: any; }) => {
     e.preventDefault();
     const question = userInput.trim();
     if (question === "") {
@@ -81,7 +89,7 @@ export default function ChatGPT() {
     setLoading(false);
   };
 
-  const handleEnter = (e: any) => {
+  const handleEnter = (e: { key: string; shiftKey: any; preventDefault: () => void; }) => {
     if (e.key === "Enter" && userInput) {
       if (!e.shiftKey && userInput) {
         handleSubmit(e);
@@ -91,7 +99,7 @@ export default function ChatGPT() {
     }
   };
 
-  const handleAddButtonClick = (index) => {
+  const handleAddButtonClick = (index: SetStateAction<number>) => {
     setShowFormAtIndex(index);
   };
 
@@ -107,9 +115,9 @@ export default function ChatGPT() {
   return (
     <>
       <div className="flex flex-col items-center p-8 h-screen ">
-        <ul className="overflow-y-auto rounded-t-lg h-3/4 w-full divide-y divide-slate-200">
+        <ul className="overflow-y-auto rounded-t-lg h-3/4 w-full divide-y divide-slate-200" ref={messageListRef}>
           {chatMessages.map((message, index) => (
-            <div key={message.id}>
+            <Fragment key={message.id} >
               <Message
                 message={message}
                 dispatch={dispatch}
@@ -124,7 +132,7 @@ export default function ChatGPT() {
                   show={setShowFormAtIndex}
                 />
               )}
-            </div>
+            </Fragment>
           ))}
           {chatMessages.length < 1 && (
             <div className="flex justify-evenly">

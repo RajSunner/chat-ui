@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
@@ -18,6 +18,13 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 const Message = ({ message, dispatch, add, index }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentValue, setCurrentValue] = useState(message.content);
+
+  const editAreaRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    editAreaRef.current?.scrollIntoView();
+
+  }, [editAreaRef]);
 
   const handleUpdate = () => {
     setIsEditMode(false);
@@ -49,9 +56,9 @@ const Message = ({ message, dispatch, add, index }) => {
   return (
     <>
       {isEditMode ? (
-        <li>
+        <li >
           <MDEditor value={currentValue} onChange={setCurrentValue} />
-          <button onClick={handleUpdate}>Update</button>
+          <button onClick={handleUpdate}  ref={editAreaRef} >Update</button>
         </li>
       ) : (
         <li className="group/item p-4 odd:bg-white even:bg-slate-50">
